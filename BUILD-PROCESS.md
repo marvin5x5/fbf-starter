@@ -11,6 +11,14 @@
 >
 > **How to use.** Copy this file into each new project folder. Work top-to-bottom. Do not skip the
 > **Phase 0 sign-off gate** — it is the single biggest preventer of rework.
+>
+> **⚠ Reconciliation in progress (Test Run 2026-07-02).** See **§12** for the fold-in of 15 test-run
+> hiccups — **start with the §12.1 methodology decision**, which every other item depends on.
+>
+> **Canonical & doc-sync.** This file is the single source of truth; it lives at
+> `fbf-starter/BUILD-PROCESS.md` and supersedes the earlier generic lifecycle doc. The
+> `design-to-elementor-wp` skill and `CLAUDE.md` are **generated from it** — never hand-edit them;
+> regenerate after any change here.
 
 ---
 
@@ -94,6 +102,8 @@ Two questions, asked of the client for **every content block**, settle almost ev
 
 ## 3. Phase 0 — Discovery & the Content Editability Map ⛔ SIGN-OFF GATE
 
+**Prerequisite:** the approved design must be present in `static-website-reference/` — Phase 0 cannot start without it.
+
 **No building starts until the client signs off this map.** Walk the approved design top to bottom and put
 **every block** in the table below. Ask the two questions from §0 for each. This is the contract that
 prevents rework.
@@ -138,13 +148,18 @@ whole section; icon webfonts.
 
 ## 4. Phase 1 — Environment & foundation
 
+> **Step zero (stamp).** `cp .env.example .env` → fill it → `npm run init`, then verify **no `{{TOKEN}}`
+> placeholder remains** in the theme or docs before building. The starter ships **recipes, not runnable
+> setup code** — the CPT/ACF/Global-Kit snippets here and in the developer references are patterns to
+> apply, not pre-wired code.
+
 1. **Provision** WP on Kinsta; install/activate Hello Elementor, Elementor + Pro, ACF, Gravity Forms, Yoast.
 2. **Permalinks** → `/%postname%/`.
 3. **Global Kit** (§1): palette, fonts, content width, **`space_between_widgets = 0`**.
 4. **Site identity**: correct legal name (never a shorthand), logo (light + dark), favicon.
 5. **Enable uploaded SVGs** (`elementor_unfiltered_files_upload = 1`); create the icon map option and upload
    the design's icons to `uploads/<icons>/` (record ids in the option).
-6. **Deploy tooling** (record credentials in the project context file, rotate before sharing):
+6. **Deploy tooling** (keep credentials in **`.env.local` (gitignored) or a secret manager — never in the git-tracked `.env` or committed**; rotate before sharing):
    - Non-interactive SSH/WP-CLI wrapper (`_ssh.exp`).
    - **File transfer = base64 a single file, pipe, decode** (concatenating many hits "Argument list too
      long"; **gzip large CSS**: `gzip -c | base64` → `base64 -d | gunzip`).
@@ -169,6 +184,11 @@ whole section; icon webfonts.
 ---
 
 ## 6. Phase 3 — Build order & per-block recipes
+
+> **⛔ Checkpoint — confirm the build methodology before this phase.** Resolve §12.1 first: the developer
+> confirms **A (shortcode feed)** vs **C (Loop Grid)** with the developer/PM — ask, don't assume. **Do not
+> build any repeating content until it's set.** (On regeneration this checkpoint lands at the start of the
+> build sequence in `developer-build-order.md`.)
 
 **Build order:** (1) global kit & foundation → (2) header + footer + nav menus → (3) reusable section
 templates & their CPTs/shortcodes → (4) homepage assembling the templates → (5) inner pages reusing the
@@ -308,6 +328,22 @@ B=$(base64 < _build_x.php | tr -d '\n'); ./_ssh.exp "echo $B | base64 -d > /tmp/
 ./_shot2.sh "<wp-url>?cgstatic=1&cb=$(date +%s%N)" wp
 ```
 
+### Local DevKinsta variant (no SSH / Cloudflare)
+
+When the build host is local DevKinsta the WP root is on the same box — skip SSH, Cloudflare and the
+base64-over-wire dance:
+
+```bash
+WP=<local wp root>                          # e.g. /www/kinsta/public/<site>
+php -l _build_x.php                         # never deploy a parse error
+wp --allow-root eval-file _build_x.php      # --allow-root: container/root shells
+wp --allow-root cache flush                 # local cache — no `kinsta cache purge`
+wp --allow-root eval '\Elementor\Plugin::$instance->files_manager->clear_cache();'
+# QA screenshots: hit https://<site>.local (self-signed TLS) directly
+```
+
+Read the site URL from `wp --allow-root option get home`; add `2>/dev/null` to mute noisy plugin warnings.
+
 ---
 
 ## 11. Appendix — Phase 0 client sign-off template
@@ -323,3 +359,75 @@ B=$(base64 < _build_x.php | tr -d '\n'); ./_ssh.exp "echo $B | base64 -d > /tmp/
 > + recipients, and brand/compliance rules.
 >
 > **Signed:** ____________________
+
+---
+
+## 12. Reconciliation — Test Run 2026-07-02 (draft for owner PR)
+
+> Output of a **readiness-pass** test run of this doctrine against the rebranded `fbf-starter` theme
+> (scope: the starter only). Full findings in `HICCUP-LOG.md` (15 entries); phase verdict in
+> `PHASE-READINESS.md`. This section is the fold-in for owner review. The **decided** items (§12.2) are
+> **already applied inline** on this branch (see the body above); on approval the generated docs
+> (`.claude/skills/design-to-elementor-wp/SKILL.md`, `CLAUDE.md`) are **regenerated** to match —
+> never hand-edited on their own.
+
+### 12.1 The gating decision — build methodology (hiccup #9) ⛔ DECIDE FIRST
+
+The repo carries **two opposed methodologies**. Every other conflict is downstream of this one pick.
+Choose one and make all docs agree.
+
+| Question | **A — this doc + `design-to-elementor-wp` skill** | **C — `developer-build-order.md` + qa/pm + CLAUDE.md** |
+|---|---|---|
+| Repeating content | CPT + shortcode feed — **never Loop Grid** (G1) | **Loop Grid** for every CPT archive |
+| Navigation | WP menu + custom walker (G4) | Elementor Nav Menu widget |
+| ACF tier | Free — no Options pages | Pro + "Site Settings" Options page |
+| Build mechanism | Idempotent `_build_*.php` writing `_elementor_data` | Build in the Elementor UI / Theme Builder |
+| Deploy | Remote Kinsta + SSH + Cloudflare + cache purge | (unspecified) |
+
+- [ ] **Adopt A** — the hard-won CG doctrine; only real if the PHP-builder + computed-style-harness tooling ships (see #11/#13)
+- [ ] **Adopt C** — standard Elementor; lower tooling, but loses the "locked single object" guarantee G1 exists to protect
+- [ ] **Hybrid** — specify exactly which parts of each
+
+**Decision owner: the developer** running the build chooses A or C per project constraints — is the
+PHP-builder + computed-style-harness tooling available (#11/#13)? does the client need the locked-object
+guarantee (G1)? **Confirm the pick with the developer (and PM) before Phase 3 — ask, don't assume**
+(use `AskUserQuestion`, per the skill's "Ask, don't guess"). Lean **A** where the tooling exists; **C**
+where it won't be built. **Do not build any repeating content until this is confirmed.**
+
+### 12.2 Decided — ✅ applied inline in the body (this branch; #9 methodology still open)
+
+| # | Finding | Proposed doctrine change |
+|---|---|---|
+| 1–2 | Forked / homeless source of truth | State up front: **this file is the single source of truth and lives at `fbf-starter/BUILD-PROCESS.md`**; the earlier generic lifecycle doc is superseded (backed up). |
+| 3 | No generator; docs drift | Add a **Doc-sync rule**: `SKILL.md` + `CLAUDE.md` are generated from this file and never hand-edited; add a regenerate step to §1 + handoff. |
+| 11 | Remote-only toolchain assumed | Add the **Local DevKinsta deploy variant** (§12.4) beside the remote loop; mark SSH/Cloudflare/base64-pipe as remote-only. |
+| 13 | Phase 1 is prose, not code | State explicitly: the starter **ships recipes, not runnable setup code** — so it isn't mistaken for missing scaffolding. |
+| 14 | init not run / tokens unstamped | Add **Step zero**: `cp .env.example .env` → fill → `npm run init` → verify **no `{{TOKEN}}` remains** before building. |
+| 15 | Secrets location undefined | Project creds (SSH, site id) live in **`.env.local` (gitignored) or a secret manager** — never in `.env` (git-tracked) or committed. Add `.env.local` to `.gitignore`. |
+| 8 | Design input | Phase 0 cannot start without a **design reference in `static-website-reference/`** — state it as the required input. |
+
+### 12.3 Pending the §12.1 decision (reconcile, then regenerate the skill + CLAUDE)
+
+| # | Finding | Resolves to |
+|---|---|---|
+| 4 | CLAUDE.md says "Loop Grid for every CPT archive" | If A: rewrite to CPT + shortcode feed. If C: keep. |
+| 5 | G4 nav conflict (walker vs Elementor Menu widget) | Pick one nav method; make G4 + skill rule 4 + build-order agree. |
+| 10 | ACF tier (free vs Pro + Options page) | Set once. The build sites have **ACF Pro**, so Options pages are available under C (or A-with-Pro). |
+| 12 | Dead skill references (`stack-and-recipes.md`, `qa-and-gotchas.md`) | Create the two files (from §1/§6 and §7/§9) or drop the pointers in the skill. |
+
+### 12.4 ✅ Applied in §10 — Local DevKinsta deploy variant (kept here for the diff)
+
+> Use when the build host is **local DevKinsta**, not remote Kinsta — no SSH, Cloudflare, or
+> base64-over-wire; the WP root is on the same box.
+>
+> ```bash
+> WP=<local wp root>                          # e.g. /www/kinsta/public/<site>
+> php -l _build_x.php                         # never deploy a parse error
+> wp --allow-root eval-file _build_x.php      # --allow-root: container/root shells
+> wp --allow-root cache flush                 # local cache — no `kinsta cache purge`
+> # clear Elementor CSS cache via: wp --allow-root eval '\Elementor\Plugin::$instance->files_manager->clear_cache();'
+> # QA screenshots: hit https://<site>.local (self-signed TLS) directly
+> ```
+>
+> Read the site URL from `wp --allow-root option get home`; suppress noisy plugin warnings when
+> scripting with `2>/dev/null`.
