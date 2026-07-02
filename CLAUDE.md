@@ -3,6 +3,9 @@
 Guidance for Claude Code when working in this theme. These rules override default
 behaviour — follow them exactly.
 
+> **Generated from `BUILD-PROCESS.md`** — the single source of truth (methodology **C — Loop Grid + Loop
+> Template**, v2). Don't hand-edit this file on its own; change the doctrine and regenerate, or the two drift.
+
 ## Project
 
 The **{{CLIENT_NAME}}** website, built by **{{AGENCY_NAME}}**. This is `fbf-starter`,
@@ -106,5 +109,5 @@ final value.
 
 - Never commit secrets. **`.env` is tracked in git** (not ignored), so it must hold only
   non-secret config (theme identity, brand tokens, public fonts URL). Keep credentials, API
-  keys, and SSH details out of `.env` and any committed file — use environment variables or a
-  secret store. Treat client content as confidential.
+  keys, and SSH details out of `.env` and any committed file — put them in **`.env.local` (gitignored)**,
+  environment variables, or a secret store. Treat client content as confidential.

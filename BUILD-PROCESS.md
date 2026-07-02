@@ -7,13 +7,15 @@
 >
 > **Audience.** Hybrid. Claude executes it; the Five by Five team follows the same phases and gates.
 > **Scope.** Approved design → go-live. (The design/prototype phase happens before this doc.)
-> **Status.** v1, distilled from the CG Law WP Test build (see `contextwptest.md` for the worked example).
+> **Status.** v2 — converted to **methodology C (Loop Grid + Loop Template)** on 2026-07-02 (test-run
+> reconciliation; the prior methodology-A "shortcode feed" version is preserved at git tag `doctrine-A`).
+> Distilled from the CG Law WP Test build.
 >
 > **How to use.** Copy this file into each new project folder. Work top-to-bottom. Do not skip the
 > **Phase 0 sign-off gate** — it is the single biggest preventer of rework.
 >
-> **⚠ Reconciliation in progress (Test Run 2026-07-02).** See **§12** for the fold-in of 15 test-run
-> hiccups — **start with the §12.1 methodology decision**, which every other item depends on.
+> **Reconciliation (Test Run 2026-07-02) — methodology C (Loop Grid) adopted.** See **§12** for the fold-in
+> of the 15 test-run hiccups; the prior methodology-A ("shortcode feed") version is at git tag `doctrine-A`.
 >
 > **Canonical & doc-sync.** This file is the single source of truth; it lives at
 > `fbf-starter/BUILD-PROCESS.md` and supersedes the earlier generic lifecycle doc. The
@@ -32,11 +34,10 @@ Two questions, asked of the client for **every content block**, settle almost ev
 
 1. **"Will you add / remove / reorder these items over time?"** (offices, team, testimonials, services…)
    → if **yes**, it's a **Custom Post Type feed** (dynamic), not hand-placed widgets.
-2. **"Do you want to edit each item as a separate object in the page builder, or should the whole panel be
-   ONE locked block you only edit through a content list?"**
-   → the client has **always** wanted the **locked single object** → **use a shortcode feed, never an
-   Elementor Loop Grid.** (Loop Grids expose a per-card "Edit Template" button — the thing the client
-   repeatedly rejected.)
+2. **"Do you edit each item as its own entry in a content list (wp-admin), with the page just displaying
+   them?"**
+   → **yes** → **CPT + ACF, displayed by an Elementor Loop Grid + Loop Template** — one card template,
+   edited once; items are managed in wp-admin, never hand-placed on the page.
 
 ---
 
@@ -47,7 +48,7 @@ Two questions, asked of the client for **every content block**, settle almost ev
 | CMS | **WordPress** (latest, PHP 8+) | `/%postname%/` permalinks |
 | Theme | **Hello Elementor** | minimal; the design lives in Elementor + CSS |
 | Builder | **Elementor 4.x free + Elementor Pro** | **container (flexbox) model, NOT sections/columns** |
-| Data layer | **ACF (free)** | field groups per CPT. ⚠️ **Options pages need ACF *Pro*** — plan around this (use template editing / theme_mods instead of ACF options) |
+| Data layer | **ACF Pro** | field groups per CPT **+ a Site Settings Options page** for site-wide content; pull all values via Elementor **Dynamic Tags** |
 | Forms | **Gravity Forms** | one central form per purpose, embedded by shortcode |
 | SEO | **Yoast** | |
 | Host | **Kinsta** | aggressive cache; Cloudflare front |
@@ -65,19 +66,21 @@ Two questions, asked of the client for **every content block**, settle almost ev
 
 ## 2. Golden Rules (the doctrine — non-negotiable defaults)
 
-- **G1 — Locked single objects for all repeating content.** Dynamic feed = **CPT + ACF + a shortcode that
-  renders plain HTML**. **Never a Loop Grid** for a panel the client wants locked. (Testimonials, team,
-  industries, services, blog were all migrated Loop Grid → shortcode for exactly this reason.)
+- **G1 — Repeating content = CPT + ACF, rendered by a Loop Grid + Loop Template.** Every archive/grid
+  (testimonials, team, industries, services, blog) is a CPT surfaced through **one Elementor Loop Template**
+  inside a **Loop Grid** widget. Content is managed in wp-admin; the card is edited once in the Loop
+  Template; values flow via **Dynamic Tags** — never hard-code CPT data into widgets.
 - **G2 — No HTML clones. No structural HTML inside `text-editor` widgets.** A `text-editor` may hold **only
   plain body copy + inline links**. Everything structural is a native widget (Heading, Button, Icon,
-  Icon-List, Nested-Accordion, Nested-Tabs, Google Maps, Image, Social Icons) **or** lives inside a feed
-  shortcode's PHP string. If you catch yourself putting `<div>/<ul>/<svg>/<address>` in a text-editor, stop.
+  Icon-List, Nested-Accordion, Nested-Tabs, Google Maps, Image, Social Icons) **or** a Loop Template's
+  widgets. If you catch yourself putting `<div>/<ul>/<svg>/<address>` in a text-editor, stop.
 - **G3 — Reusable panels are Elementor *section templates*.** Build once in `elementor_library`, embed
   everywhere via the **Template widget**. Edit once → propagates to every page. (CG: CTA 295, Insights 310,
   How We Work 404, Client Outcomes 412, Our People 416, Services 493, Industries 435, Stats 501, Locations
   503, Why Choose Us 515.)
-- **G4 — Navigation / link lists / legal = WP menus** (Appearance → Menus), rendered by a **custom walker
-  or shortcode** that emits the exact design markup. Editable by a non-dev, byte-perfect render.
+- **G4 — Navigation = the Elementor Pro Nav Menu widget** (built on a WP menu in Appearance → Menus). Style
+  links / dropdowns / mega-menus via widget settings for a pixel-exact render; a non-dev edits the items in
+  Appearance → Menus. Don't hand-roll a custom walker.
 - **G5 — Static marketing content = native Elementor widgets** (Heading/Text/Button/Icon), placed in a
   section template if reused. Every element stays editable in the canvas.
 - **G6 — Forms = Gravity Forms**, one form per purpose, embedded via `[gravityform id=N]` inside a shared
@@ -85,14 +88,14 @@ Two questions, asked of the client for **every content block**, settle almost ev
 - **G7 — Icon fidelity via inline SVG / CSS mask, never icon webfonts.** FontAwesome/eicon webfonts are
   **not reliably enqueued** on the front end here → glyphs render blank. Upload SVGs to media + an icon map
   and use them in Icon widgets, or paint the exact shape with a CSS `mask`/gradient. Colour via CSS.
-- **G8 — Editable chrome + dynamic content when both are needed.** If the client must edit a *container*
-  (e.g. add/rename tabs) **and** the content must come from a CPT: keep the **native Elementor widget**
-  (Nested-Tabs/Accordion) for the chrome, and put a **per-item shortcode** (`[cg_location id="X"]`) inside
-  each tab. Chrome edited in Elementor; item data edited in the CPT.
-- **G9 — Builders are idempotent and self-healing.** Every `_build_*.php` writes `_elementor_data`
-  **directly** (the `$document->save()` API leaves it empty), sets `_elementor_edit_mode=builder`,
-  **clears the stale autosave + revisions**, touches `post_modified`, clears Elementor CSS cache, and
-  purges host cache. (See Gotcha #2.)
+- **G8 — Editable chrome + dynamic content when both are needed.** Keep the **native Elementor widget**
+  (Nested-Tabs/Accordion) for the chrome the client edits, and drive each panel's items from the CPT via a
+  **Loop Grid** (or Dynamic-Tag-bound widgets) inside it. Chrome edited in Elementor; item data in the CPT.
+- **G9 — Build in the Elementor UI / Theme Builder; register data in code.** Pages, templates, header/
+  footer, Loop Templates and Global/Saved sections are built in the Elementor editor. CPTs, ACF field groups
+  and the Options page are registered in `functions.php` / `inc/setup.php`. If you ever *script* an Elementor
+  document, write `_elementor_data` directly + `_elementor_edit_mode=builder`, clear the stale
+  autosave/revisions, and flush Elementor CSS cache (Gotcha #2).
 - **G10 — Pixel-perfect is verified, not asserted.** Diff computed styles (CDP harness) and screenshots
   against the approved design before claiming done. Freeze carousels first (`?cgstatic=1`).
 - **G11 — Respect brand/compliance rules from the brief** (e.g. CG: always "Clifford Gouldson Lawyers",
@@ -114,24 +117,24 @@ prevents rework.
 Is the block a FORM?
   └─ yes → GRAVITY FORM, embedded by shortcode in a shared template.            [type: FORM]
 Is it NAVIGATION / a link list / legal menu?
-  └─ yes → WP MENU (Appearance→Menus) + custom walker/shortcode render.         [type: MENU]
+  └─ yes → Elementor Pro NAV MENU widget (built on a WP menu).                  [type: MENU]
 Will the client ADD / REMOVE / REORDER items over time? (people, offices,
 posts, testimonials, services, industries…)
-  └─ yes → CUSTOM POST TYPE + ACF + shortcode feed (single locked object).
+  └─ yes → CUSTOM POST TYPE + ACF, shown via a LOOP GRID + LOOP TEMPLATE.
            • Needs its own detail page per item?  → make the CPT Elementor-editable.
            • Client must also edit the CONTAINER (tabs/labels/order)?
-                → editable native chrome (Nested-Tabs) + per-item shortcode.    [type: CPT-FEED / CPT-CHROME]
+                → editable native chrome (Nested-Tabs) + a Loop Grid inside.    [type: CPT-LOOP / CPT-CHROME]
   └─ no  → Is the SAME panel reused on multiple pages?
              └─ yes → NATIVE widgets in a SECTION TEMPLATE (edit once).          [type: TEMPLATE]
              └─ no  → NATIVE widgets inline on the page.                          [type: STATIC]
 ```
 
-**Never** produces: a Loop Grid for a locked panel; structural HTML in a text-editor; an HTML clone of a
-whole section; icon webfonts.
+**Never** produces: structural HTML in a text-editor; an HTML clone of a whole section; icon webfonts;
+hard-coded CPT values in widgets (always Dynamic Tags).
 
 ### 3b. The Content Editability Map (fill in, client signs)
 
-| # | Block (design) | Type (STATIC / TEMPLATE / CPT-FEED / CPT-CHROME / FORM / MENU) | Who edits what, where | Notes / detail pages? |
+| # | Block (design) | Type (STATIC / TEMPLATE / CPT-LOOP / CPT-CHROME / FORM / MENU) | Who edits what, where | Notes / detail pages? |
 |---|---|---|---|---|
 | 1 | Header / nav | MENU + native chrome | Links → Appearance→Menus; logo/CTA → header template | mega-menu = N groups |
 | 2 | Hero | STATIC / TEMPLATE | copy → Elementor | |
@@ -185,15 +188,13 @@ whole section; icon webfonts.
 
 ## 6. Phase 3 — Build order & per-block recipes
 
-> **⛔ Checkpoint — confirm the build methodology before this phase.** Resolve §12.1 first: the developer
-> confirms **A (shortcode feed)** vs **C (Loop Grid)** with the developer/PM — ask, don't assume. **Do not
-> build any repeating content until it's set.** (On regeneration this checkpoint lands at the start of the
-> build sequence in `developer-build-order.md`.)
+> **⛔ Checkpoint — methodology.** This doctrine is **methodology C (Loop Grid + Loop Template)**. Confirm C
+> still fits the project before building repeating content; only revisit if the client needs the locked-object
+> guarantee (then see the `doctrine-A` tag). This checkpoint also lands in `developer-build-order.md` on regen.
 
-**Build order:** (1) global kit & foundation → (2) header + footer + nav menus → (3) reusable section
-templates & their CPTs/shortcodes → (4) homepage assembling the templates → (5) inner pages reusing the
-templates → (6) forms → (7) SEO/redirects. Always build the **shared template/CPT before** the page that
-embeds it.
+**Build order:** (1) global kit & foundation → (2) header + footer + nav menus → (3) CPTs + ACF + Loop
+Templates → (4) reusable Global/Saved sections → (5) homepage assembling them → (6) inner pages → (7) forms
+→ (8) SEO/redirects. Always build the **CPT + Loop Template / shared section before** the page that embeds it.
 
 ### Recipe A — STATIC / TEMPLATE (native widgets)
 Build the panel with native widgets (Heading/Text/Button/Icon/Image). If reused, save as a **section
@@ -201,34 +202,34 @@ template** and embed via the Template widget wrapped in a full-bleed container
 (`css_classes: cg-tpl-embed cg-<x>-embed`). Keep an inline fallback in the builder (`if($tplId) …else…`).
 Typography/colour baked into **widget settings** (cleaner than fighting the cascade).
 
-### Recipe B — CPT-FEED (dynamic, single locked object)  ← the workhorse
-1. **mu-plugin** (`cg-<thing>.php`): `register_post_type()` (real slug; `page-attributes` for `menu_order`;
-   Elementor-editable if it needs detail pages — add to `elementor_cpt_support`).
-2. **ACF group** (`group_cg_<thing>`) with the fields from the Editability Map. Name = the **post title**.
-3. **Shortcode** `[cg_<thing>_grid]` = `WP_Query(menu_order)` → **plain HTML** cards (the exact design
-   markup + classes), **no Elementor sub-objects**. `esc_*` everything. Inline SVGs from the icon map.
-4. **Idempotent seeder** (`_seed_<thing>.php`) creating the initial posts + ACF via **field keys**.
-5. **Section template** (`_build_<thing>_tpl.php`): native chrome (eyebrow/H2/lead/button) + a **Shortcode
-   widget** running the feed. Embed on pages via the Template widget.
-6. **CSS**: the shortcode renders plain HTML → target that HTML (not Elementor DOM). If it's a **carousel**,
-   add the card's class to `cg-slider.js`'s slide filter **and** give it the 4-up flex width (Gotcha #4).
+### Recipe B — CPT-LOOP (dynamic archive/grid)  ← the workhorse
+1. **Register the CPT** in `functions.php` / `inc/setup.php`: `register_post_type()` (real slug, `show_in_rest`;
+   `page-attributes` for `menu_order`; Elementor-editable if it needs detail pages). Flush rewrites (Gotcha #13).
+2. **ACF field group** (per the Editability Map) assigned to the CPT; every display value is a **Dynamic Tag**.
+3. **Loop Template** (Elementor → Templates → Loop): one card built from native widgets, each bound to a
+   Dynamic Tag. Card hover/lift in the component SCSS partial.
+4. **Loop Grid widget** on the page/section runs the query — order by `menu_order`/date; filter per page via
+   an ACF Relationship or taxonomy. Columns/gap per design.
+5. **Sample content:** enter a few real CPT entries so the grid can be built and QA'd.
+6. **CSS**: target the Loop Grid's DOM. For a carousel use the **Loop Carousel** (or the design's slider JS).
 
 ### Recipe C — CPT-CHROME (editable container + dynamic items)
-Native **Nested-Tabs/Accordion** widget for the chrome (labels/order editable in Elementor), seeded from the
-CPT at build time; each tab/item holds a **per-item shortcode** `[cg_<thing> id="X"]` rendering one post's
-card. (CG Locations: nested-tabs + `[cg_location id]`.) Chrome edited in the template; data edited in the CPT.
+Native **Nested-Tabs/Accordion** widget for the chrome (labels/order editable in Elementor); each tab holds a
+**Loop Grid** (or Dynamic-Tag-bound widgets) filtered to that tab's CPT items. Chrome edited in the template;
+item data edited in the CPT.
 
 ### Recipe D — MENU (nav / footer links / legal)
-Register menu locations; build the menus idempotently (skip if they exist unless forced — don't wipe client
-edits); render via a **custom walker/shortcode** emitting the exact `.mega-menu`/`.dd-menu` markup the CSS
-styles. Per-item CSS classes (set in Appearance→Menus) drive mega vs dropdown vs plain.
+Create the WP menu(s) in Appearance → Menus, then render with the **Elementor Pro Nav Menu widget** (header)
+and Nav Menu / Icon-List widgets (footer columns). Style dropdowns/mega-menus via widget settings; per-item
+CSS classes (set in Appearance→Menus) drive mega vs dropdown vs plain. No custom walker.
 
 ### Recipe E — FORM (Gravity Forms)
 Build the form via **`GFAPI`** in PHP (`wp gf` CLI add-on may be absent). Custom submit button via a
 `gform_submit_button_<id>` filter if the design needs an inline arrow. Embed `[gravityform id=N …]` inside
 the shared CTA template so it flows site-wide. Scope GF-theme-neutralising CSS to `#gform_wrapper_<id>`.
 
-### Recipe F — the idempotent builder skeleton (every `_build_*.php`)
+### Recipe F — scripting an Elementor document (advanced / optional)
+C builds in the Elementor UI; only script a document when bulk-generation is genuinely unavoidable. If you do:
 ```php
 // 1. build $data = array($section);           // container/widget tree via SEC/COL/INSEC/W helpers
 // 2. find-or-create the target post/template by slug
@@ -237,7 +238,7 @@ the shared CTA template so it flows site-wide. Scope GF-theme-neutralising CSS t
 // 4. clear stale autosave + revisions; touch post_modified               // Gotcha #2
 // 5. \Elementor\Plugin::$instance->files_manager->clear_cache();
 // 6. echo a verification line (counts of the widgets you expect)
-// Deploy: php -l  →  wp eval-file  →  wp kinsta cache purge --all
+// Deploy: php -l  →  wp eval-file  →  cache flush
 ```
 **CSS-class key (memorise):** containers/sections/columns use **`css_classes`**; **widgets use
 `_css_classes`** (with underscore). Wrong one = class silently not rendered.
@@ -287,8 +288,8 @@ Run for **every** built page/template:
    touch `post_modified`. Tell the client to reopen without saving.
 3. **Write `_elementor_data` directly** (`update_post_meta` + `wp_slash(wp_json_encode())` +
    `_elementor_edit_mode=builder`); `$document->save()` leaves it empty.
-4. **Shortcode carousel not sliding** — add the card class to `cg-slider.js`'s slide filter **and** give it
-   4-up flex width. Re-test the OTHER carousels (one change can break them).
+4. **Carousel not sliding** — prefer the Elementor **Loop Carousel**; if using custom slider JS, register the
+   card's slide selector **and** set its per-view width. Re-test the OTHER carousels (one change can break them).
 5. **Grid items keep inline `width:%`** from the `COL()` helper → force `width:auto` inside CSS grids.
 6. **Equal-height card + pinned CTA** — use CSS grid on the card (`grid-template-rows:auto 1fr`) + CTA
    `margin-top:auto`; flex `height:100%` chains don't resolve through shortcode/loop DOM.
@@ -306,10 +307,12 @@ Run for **every** built page/template:
 12. **Theme-builder templates** see the *template* as `$post` → use `get_queried_object_id()`.
 13. **CPT `rewrite slug`** must be a real slug (empty breaks routing); **flush rewrites** after registering a
     new CPT (`wp rewrite flush`) or single posts 404.
-14. **Loop Grid = per-card editing** (architectural, not a bug). Use a shortcode feed for locked panels (G1).
+14. **Loop Grid card is edited in the Loop Template** — edit the card once there; per-card content is the CPT
+    entry (via Dynamic Tags), not per-instance. Don't rebuild the card inline per page.
 15. **Cloudflare 1010** — always send a browser UA (incl. headless).
 16. **Large CSS transfer** silently truncates single-arg base64 → gzip it.
-17. **ACF is the FREE tier** — no options pages. Plan editing around template editing / Customizer / theme_mods.
+17. **ACF Pro** — a Site Settings **Options page** holds site-wide content (stats, contacts, socials, cert
+    logos, disclaimer); surface every value via Dynamic Tags.
 
 ---
 
@@ -353,10 +356,10 @@ Read the site URL from `wp --allow-root option get home`; add `2>/dev/null` to m
 >
 > *(attach the completed Content Editability Map from §3b)*
 >
-> I confirm: the classification of each block (static / reusable template / CPT feed / editable-chrome+dynamic
-> / form / menu), that repeating content is managed via its content type (not hand-placed), that panels are
-> **single locked objects** (no per-card editing), and the listed CPTs/fields, reused templates, form fields
-> + recipients, and brand/compliance rules.
+> I confirm: the classification of each block (static / reusable template / CPT-loop / editable-chrome+dynamic
+> / form / menu), that repeating content is managed via its CPT (not hand-placed) and surfaced through Loop
+> Templates via Dynamic Tags, and the listed CPTs/fields, reused templates, form fields + recipients, and
+> brand/compliance rules.
 >
 > **Signed:** ____________________
 
@@ -371,30 +374,28 @@ Read the site URL from `wp --allow-root option get home`; add `2>/dev/null` to m
 > (`.claude/skills/design-to-elementor-wp/SKILL.md`, `CLAUDE.md`) are **regenerated** to match —
 > never hand-edited on their own.
 
-### 12.1 The gating decision — build methodology (hiccup #9) ⛔ DECIDE FIRST
+### 12.1 The gating decision — build methodology (hiccup #9) ✅ RESOLVED: C
 
-The repo carries **two opposed methodologies**. Every other conflict is downstream of this one pick.
-Choose one and make all docs agree.
+The repo carried **two opposed methodologies**; the owner picked **C** on 2026-07-02.
 
-| Question | **A — this doc + `design-to-elementor-wp` skill** | **C — `developer-build-order.md` + qa/pm + CLAUDE.md** |
+| Question | A — "shortcode feed" (prior; tag `doctrine-A`) | **C — Loop Grid (adopted)** |
 |---|---|---|
-| Repeating content | CPT + shortcode feed — **never Loop Grid** (G1) | **Loop Grid** for every CPT archive |
-| Navigation | WP menu + custom walker (G4) | Elementor Nav Menu widget |
-| ACF tier | Free — no Options pages | Pro + "Site Settings" Options page |
-| Build mechanism | Idempotent `_build_*.php` writing `_elementor_data` | Build in the Elementor UI / Theme Builder |
-| Deploy | Remote Kinsta + SSH + Cloudflare + cache purge | (unspecified) |
+| Repeating content | CPT + shortcode feed — never Loop Grid | **CPT + Loop Grid + Loop Template** |
+| Navigation | WP menu + custom walker | **Elementor Nav Menu widget** |
+| ACF tier | Free — no Options pages | **Pro + Site Settings Options page** |
+| Build mechanism | Idempotent `_build_*.php` writing `_elementor_data` | **Build in the Elementor UI / Theme Builder** |
+| Deploy | Remote Kinsta + SSH + Cloudflare + cache purge | Same remote loop + the local variant (§12.4) |
 
-- [ ] **Adopt A** — the hard-won CG doctrine; only real if the PHP-builder + computed-style-harness tooling ships (see #11/#13)
-- [ ] **Adopt C** — standard Elementor; lower tooling, but loses the "locked single object" guarantee G1 exists to protect
-- [ ] **Hybrid** — specify exactly which parts of each
+- [ ] **A** — shortcode feed / never Loop Grid (preserved at tag `doctrine-A`)
+- [x] **C** — Loop Grid + Loop Template ← **chosen 2026-07-02**
+- [ ] Hybrid
 
-**Decision owner: the developer** running the build chooses A or C per project constraints — is the
-PHP-builder + computed-style-harness tooling available (#11/#13)? does the client need the locked-object
-guarantee (G1)? **Confirm the pick with the developer (and PM) before Phase 3 — ask, don't assume**
-(use `AskUserQuestion`, per the skill's "Ask, don't guess"). Lean **A** where the tooling exists; **C**
-where it won't be built. **Do not build any repeating content until this is confirmed.**
+The doctrine body above has been **converted to C** (G1/G4/G8/G9, the §3 decision tree, and Recipes B–D/F;
+stack → ACF Pro; gotchas 4/14/17). Per project, the developer still confirms C fits before building — ask,
+don't assume (per the skill's "Ask, don't guess"); if a client needs the locked-object guarantee, revisit
+against the `doctrine-A` tag. The generated docs (SKILL.md, CLAUDE.md) are **regenerated to C** in this change.
 
-### 12.2 Decided — ✅ applied inline in the body (this branch; #9 methodology still open)
+### 12.2 Decided — ✅ applied inline in the body
 
 | # | Finding | Proposed doctrine change |
 |---|---|---|
@@ -406,14 +407,14 @@ where it won't be built. **Do not build any repeating content until this is conf
 | 15 | Secrets location undefined | Project creds (SSH, site id) live in **`.env.local` (gitignored) or a secret manager** — never in `.env` (git-tracked) or committed. Add `.env.local` to `.gitignore`. |
 | 8 | Design input | Phase 0 cannot start without a **design reference in `static-website-reference/`** — state it as the required input. |
 
-### 12.3 Pending the §12.1 decision (reconcile, then regenerate the skill + CLAUDE)
+### 12.3 ✅ Resolved by the C decision (regenerated into the skill + CLAUDE)
 
-| # | Finding | Resolves to |
+| # | Finding | Resolution |
 |---|---|---|
-| 4 | CLAUDE.md says "Loop Grid for every CPT archive" | If A: rewrite to CPT + shortcode feed. If C: keep. |
-| 5 | G4 nav conflict (walker vs Elementor Menu widget) | Pick one nav method; make G4 + skill rule 4 + build-order agree. |
-| 10 | ACF tier (free vs Pro + Options page) | Set once. The build sites have **ACF Pro**, so Options pages are available under C (or A-with-Pro). |
-| 12 | Dead skill references (`stack-and-recipes.md`, `qa-and-gotchas.md`) | Create the two files (from §1/§6 and §7/§9) or drop the pointers in the skill. |
+| 4 | CLAUDE.md "Loop Grid for every CPT archive" | ✅ **Kept** — matches C; CLAUDE.md regenerated to C. |
+| 5 | G4 nav conflict (walker vs Menu widget) | ✅ **Elementor Nav Menu widget** everywhere — G4, skill rule 4, build-order agree. |
+| 10 | ACF tier (free vs Pro + Options) | ✅ **ACF Pro + Options page** (env has Pro) — set in §1 + gotcha 17. |
+| 12 | Dead skill references | ✅ Skill repointed to `developer-build-order.md` (the C build sequence); dead pointers dropped. |
 
 ### 12.4 ✅ Applied in §10 — Local DevKinsta deploy variant (kept here for the diff)
 
