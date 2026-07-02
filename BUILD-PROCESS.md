@@ -185,6 +185,11 @@ whole section; icon webfonts.
 
 ## 6. Phase 3 — Build order & per-block recipes
 
+> **⛔ Checkpoint — confirm the build methodology before this phase.** Resolve §12.1 first: the developer
+> confirms **A (shortcode feed)** vs **C (Loop Grid)** with the developer/PM — ask, don't assume. **Do not
+> build any repeating content until it's set.** (On regeneration this checkpoint lands at the start of the
+> build sequence in `developer-build-order.md`.)
+
 **Build order:** (1) global kit & foundation → (2) header + footer + nav menus → (3) reusable section
 templates & their CPTs/shortcodes → (4) homepage assembling the templates → (5) inner pages reusing the
 templates → (6) forms → (7) SEO/redirects. Always build the **shared template/CPT before** the page that
