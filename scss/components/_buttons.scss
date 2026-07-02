@@ -1,0 +1,19 @@
+// ---------------------------------------------------------------------------
+// Buttons — CTA pill
+//
+// Consumes design tokens from abstracts/_tokens.scss. Rules target a
+// `.brand-cta-pill` wrapper class + Elementor selectors, so they behave as
+// Elementor overrides. Add the class to a Button widget's
+// Advanced → CSS Classes.
+// ---------------------------------------------------------------------------
+
+.brand-cta-pill .elementor-button {
+  border-radius: var(--radius-pill) !important;
+  white-space: nowrap;
+  transition: all .26s var(--ease-out);
+  box-shadow: var(--shadow-primary);
+}
+.brand-cta-pill .elementor-button:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-lg);
+}

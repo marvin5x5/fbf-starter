@@ -1,0 +1,4 @@
+# This skill's SKILL.md references two docs that must be added here:
+#   • stack-and-recipes.md   — stack setup, per-block build recipes, deploy tooling
+#   • qa-and-gotchas.md       — QA harness/pixel-diff process + known gotchas
+# Drop them in (or paste their contents to have them created).

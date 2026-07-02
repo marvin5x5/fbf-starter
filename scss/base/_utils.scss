@@ -1,0 +1,10 @@
+// ---------------------------------------------------------------------------
+// Utility classes — add only what pages use; unused helpers are dead weight
+// in the compiled bundle.
+// ---------------------------------------------------------------------------
+
+.flex { display: flex; }
+.flex-column { display: flex; flex-direction: column; }
+.align-center { align-items: center; }
+.justify-center { justify-content: center; }
+.space-between { justify-content: space-between; }

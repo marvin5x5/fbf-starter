@@ -1,0 +1,10 @@
+// ---------------------------------------------------------------------------
+// Elementor override layer
+//
+// In a Hello Elementor child, most custom CSS is really *overrides* of
+// Elementor's high-specificity (often inline) output. Keep override selectors
+// here, scoped to your own component hooks where possible, rather than
+// scattering !important across component partials.
+//
+// (Empty by default — add project overrides as needed.)
+// ---------------------------------------------------------------------------

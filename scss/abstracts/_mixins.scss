@@ -1,0 +1,20 @@
+// ---------------------------------------------------------------------------
+// Mixins (no output until @included)
+//
+// A deliberately small starter set. Icons are expected to be inline SVGs
+// (e.g. Lucide), so there is intentionally no icon-font mixin.
+// ---------------------------------------------------------------------------
+
+@mixin center($display: flex) {
+  display: $display;
+  align-items: center;
+  justify-content: center;
+}
+
+@mixin limit-lines($lines: 2) {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: $lines;
+  line-clamp: $lines;
+  overflow: hidden;
+}

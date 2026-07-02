@@ -1,0 +1,18 @@
+// ---------------------------------------------------------------------------
+// Minimal reset — intentionally light. hello-elementor + Elementor already
+// normalise most of this; only add rules that Elementor does not cover.
+// ---------------------------------------------------------------------------
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+select,
+button,
+textarea,
+input {
+  font-size: inherit;
+  font-family: inherit;
+}

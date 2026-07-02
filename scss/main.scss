@@ -1,0 +1,29 @@
+// ---------------------------------------------------------------------------
+// FBF Starter — SCSS entry point. Compiles to assets/css/main.css
+//   npm run build:css   → one-off, compressed
+//   npm run watch:css   → watch mode, expanded
+//
+// Structure:
+//   abstracts/  — tokens + mixins (produce no CSS on their own)
+//   base/       — reset, base, utils, animations
+//   elementor/  — overrides for Elementor's high-specificity output
+//   components/ — section partials (header/nav/footer/buttons); fill in per project
+// ---------------------------------------------------------------------------
+
+// abstracts — tokens & mixins (no output)
+@use 'abstracts/tokens';
+
+// base
+@use 'base/reset';
+@use 'base/base';
+@use 'base/utils';
+@use 'base/animations';
+
+// elementor override layer
+@use 'elementor/overrides';
+
+// components — nav is developer-owned; review-popup is optional (see its file)
+@use 'components/header';
+@use 'components/nav';
+@use 'components/buttons';
+@use 'components/footer';
