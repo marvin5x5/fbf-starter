@@ -23,6 +23,7 @@ if ( ! defined( 'THEME_GOOGLE_FONTS_URL' ) ) {
 }
 
 // ── Includes ─────────────────────────────────────────────────────────────────
+require_once get_stylesheet_directory() . '/lib/custom-functions.php';
 require_once get_stylesheet_directory() . '/inc/shortcodes.php';
 
 // ── Enqueue parent stylesheet ─────────────────────────────────────────────────
