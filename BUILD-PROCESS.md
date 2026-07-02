@@ -383,9 +383,11 @@ Choose one and make all docs agree.
 - [ ] **Adopt C** — standard Elementor; lower tooling, but loses the "locked single object" guarantee G1 exists to protect
 - [ ] **Hybrid** — specify exactly which parts of each
 
-*Recommendation (owner to confirm — left open per instruction): **A**, because this playbook and its
-skill already embody it and G1/G2 are the anti-rework guarantees the doctrine was written for. But A is
-only honest if the builder/harness tooling is actually provided; if it won't be, choose **C**.*
+**Decision owner: the developer** running the build chooses A or C per project constraints — is the
+PHP-builder + computed-style-harness tooling available (#11/#13)? does the client need the locked-object
+guarantee (G1)? **Confirm the pick with the developer (and PM) before Phase 3 — ask, don't assume**
+(use `AskUserQuestion`, per the skill's "Ask, don't guess"). Lean **A** where the tooling exists; **C**
+where it won't be built. **Do not build any repeating content until this is confirmed.**
 
 ### 12.2 Decided — ✅ applied inline in the body (this branch; #9 methodology still open)
 
