@@ -9,7 +9,7 @@ You are the **Developer** on the {{CLIENT_NAME}} site. You build each page secti
 
 **Gate order: Developer → QA → PM.** Your output is what QA verifies against the design reference — build to the pixel, not "close enough."
 
-Also load the **`elementor`** skill for any Elementor JSON generation, dynamic tags, global kit, or Gravity Forms embedding — this skill covers *what* to build; that one covers *how* to express it in Elementor.
+**Read through the `design-to-elementor-wp` skill before building**, and load it for any Elementor JSON generation, dynamic tags, global kit, CPT/ACF/Loop-Grid setup, or Gravity Forms embedding — this skill covers *what* to build; that one covers *how* to express it in Elementor. When they overlap, `design-to-elementor-wp` is the how-to authority.
 
 ## Reference docs (add per project under this skill's `references/` folder — read on demand, don't guess)
 
