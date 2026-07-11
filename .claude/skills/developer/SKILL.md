@@ -21,7 +21,8 @@ The `references/` folder ships empty. Populate it for {{CLIENT_NAME}} with, for 
 ## Working rules
 
 - Site CSS lives in `scss/` → compiled to `assets/css/main.css` (`npm run build:css`); design tokens are in `scss/abstracts/_tokens.scss`. Don't add inline CSS to `functions.php`. `scss/components/_nav.scss` is developer-owned by convention.
-- Pull ACF / Site Settings values via Elementor **Dynamic Tags**; use a **Loop Grid** for every CPT archive/grid. Don't hard-code CPT field values.
+- Create a single **ACF Options page named "Site Setting"** — the one home for all **site-wide / global ACF fields** and **ACF repeater fields** (e.g. contacts, socials, stats, cert logos, footer disclaimer). Register it once (ACF Pro `acf_add_options_page`), add the fields there, and **pull every value via Elementor Dynamic Tags** — never hard-code them. Reuse this page across the site rather than scattering global fields per template.
+- Pull ACF / Site Setting values via Elementor **Dynamic Tags**; use a **Loop Grid** for every CPT archive/grid. Don't hard-code CPT field values.
 - Elementor Pro is the sole builder; Gutenberg is disabled by the parent. Header/footer are Theme Builder templates.
 - Recommended defaults (confirm per project): icons as inline SVG (e.g. Lucide), images from the Media Library in an optimised format (e.g. WebP).
 
