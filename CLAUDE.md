@@ -17,6 +17,25 @@ verified by QA and signed off by PM before client handoff. The bar is pixel-perf
 typography, spacing, colour, hover/focus states, responsive breakpoints, and copy must
 match the design source.
 
+## Golden Rules — always follow (non-negotiable)
+
+**`BUILD-PROCESS.md` §2 is canonical; these rules are mandatory defaults on every build.**
+Follow them by default and don't deviate without an explicit, recorded decision — if a task
+seems to require breaking one, stop and ask (see *Ask, don't guess*). Read §2 in full before
+building; the cheat-sheet below is a reminder, not a replacement.
+
+- **G1** — Repeating content = **CPT + ACF**, rendered by a **Loop Grid + Loop Template** (never hard-coded).
+- **G2** — **No HTML clones**; no structural HTML (`<div>/<ul>/<svg>/<address>`) inside `text-editor` widgets.
+- **G3** — Reusable panels = Elementor **section templates** (build once, embed via the Template widget).
+- **G4** — Navigation = Elementor Pro **Nav Menu widget** on a WP menu; no custom walker.
+- **G5** — Static marketing content = **native Elementor widgets** (Heading/Text/Button/Icon), editable in canvas.
+- **G6** — Forms = **Gravity Forms**, one per purpose, embedded by shortcode in a shared template.
+- **G7** — Icon fidelity via **inline SVG / CSS mask**, never icon webfonts.
+- **G8** — Editable chrome + dynamic items = native chrome widget (Nested-Tabs/Accordion) **+ a Loop Grid inside**.
+- **G9** — **Build in the Elementor UI / Theme Builder; register data (CPT/ACF/Options) in code.**
+- **G10** — **Pixel-perfect is verified, not asserted** — diff computed styles + screenshots before "done".
+- **G11** — **Respect the brief's brand/compliance rules** (legal name, banned phrases, disclaimers, etc.).
+
 ## Setup & build
 
 - The starter baseline ships **doctrine + tooling + `templates/`** only — the runnable theme
