@@ -1,55 +1,93 @@
 # FBF Starter
 
-A reusable, de-branded **Hello Elementor child theme** starter. It carries the
-reusable architecture — SCSS layering + build, a compiled-CSS enqueue with
-`filemtime` cache-busting, an optional Google Fonts enqueue, an Elementor
-customizer fatal-fix, a scroll-shadow helper, a guarded shortcode registry, and
-the Developer → QA → PM role skills — with **no client branding**. Tokens are
-placeholders and components are empty stubs you fill in per project.
+A reusable, de-branded **Hello Elementor child theme** starter. The baseline ships
+**doctrine + tooling + `templates/`** only — it does *not* carry a runnable theme.
+The theme (SCSS layering + build, a compiled-CSS enqueue with `filemtime`
+cache-busting, an optional Google Fonts enqueue, an Elementor customizer fatal-fix,
+a scroll-shadow helper, a guarded shortcode registry) is **rendered from
+`templates/` at init**, so there are never stale stubs. The Developer → QA → PM
+role skills ship ready. Tokens are placeholders and components are empty stubs you
+fill in per project.
 
 ## Per-project setup
 
 ```bash
 cp .env.example .env      # then fill in .env (see below)
 npm install
-npm run init              # stamps identity from .env into the theme + skills
-npm run build:css         # compiles scss/ → assets/css/main.css
+# then, in Claude Code:
+/init-project             # renders templates/ → theme root, stamps identity,
+                          # resets context.md, ensures content dirs, imports
+                          # reference images to the Media Library (if ready),
+                          # and runs build:css
 ```
 
+`/init-project` is the Claude-driven scaffolder. Under the hood it runs
+`npm run init` (`scripts/init.mjs`) as a **pre-flight check** — that script now
+only *validates* `.env` + `templates/` and prints the resolved identity; it no
+longer writes files. All file creation + substitution happens in the skill.
+
+Only after init do `style.css`, `functions.php`, `inc/`, `lib/`, `scss/` and
+`assets/css/main.css` exist in the theme root — commit them to the project's repo.
 Activate the theme in WordPress with **Hello Elementor** installed as the parent.
 
 ### `.env`
 
-| Key | Stamps into | Notes |
+| Key | Rendered into | Notes |
 |---|---|---|
 | `CLIENT_NAME` | `style.css` Theme Name + the role skills | The site name the skills refer to |
-| `THEME_AUTHOR` | `style.css` Author | |
+| `THEME_AUTHOR` | `style.css` Author + `{{AGENCY_NAME}}` in docs | |
 | `PARENT_THEME` | `style.css` Template + parent enqueue | Default `hello-elementor` |
 | `THEME_HANDLE_PREFIX` | `wp_enqueue_*` handles | Slugified (e.g. `acme-main`) |
 | `BRAND_PRIMARY` / `BRAND_ACCENT` | `_tokens.scss` | Blank → keep `#000 /* TODO */` |
 | `FONT_SANS` / `FONT_SERIF` | `_tokens.scss` font stacks | Blank → system stacks |
 | `GOOGLE_FONTS_URL` | `functions.php` fonts enqueue | Blank → no fonts enqueued |
 
-`npm run init` is idempotent for identity fields. `{{CLIENT_NAME}}` in the role
-skills is a one-shot token — once stamped it's gone, so changing `CLIENT_NAME`
-later won't retro-update the skills.
+`/init-project` renders once per project. `{{CLIENT_NAME}}` / `{{AGENCY_NAME}}` in
+the docs + role skills are one-shot tokens — once stamped they're gone, so changing
+`CLIENT_NAME` later won't retro-update them (re-clone or edit by hand).
+
+## Build workflow
+
+The build runs **Developer → QA → PM** — each an entry-point skill in `.claude/skills/` —
+against the **Golden Rules G1–G11** in `BUILD-PROCESS.md` §2 (always followed; mirrored in
+`CLAUDE.md`). No page advances a gate until the current one passes.
+
+- **Developer** — builds each section by mapping the design to **native Elementor widgets**
+  (see the widget map in the skill), not structural HTML. Pulls all global content from a single
+  **"Site Settings"** ACF Options page via **Dynamic Tags**, uses a **Loop Grid** for every CPT
+  list, builds repeating things like the text marquee as a **shortcode** driven by a Site Settings
+  repeater, and screenshots the static reference into `screenshot-reference/` to self-check.
+- **QA** — verifies **pixel-perfect, section by section** (zero tolerance on type/colour/spacing,
+  every breakpoint incl. ~390px, hover/focus states) against the `screenshot-reference/` baselines.
+- **PM** — signs off site-wide coherence, copy, and forms, and **independently re-checks
+  pixel-perfection** as the final gate.
 
 ## Structure
 
 ```
+── committed in the starter baseline ──
 CLAUDE.md               project rules + goals (read by Claude Code on load)
 BUILD-PROCESS.md        end-to-end lifecycle: setup → build → QA → PM → handoff
-functions.php          framework scaffold (enqueues, customizer fix, scroll-shadow)
-inc/shortcodes.php      [current_year] [site_email] [site_option]
-scss/                   design tokens + base + component stubs → assets/css/main.css
-scripts/init.mjs        reads .env, stamps identity
-.claude/skills/         developer · qa · pm role skills + references (Developer → QA → PM gate)
-static-website-reference/  empty — drop the project's static design source here
+templates/              canonical file skeletons (SOURCE OF TRUTH), rendered at init:
+  ├ style.css             theme header ({{CLIENT_NAME}} …)
+  ├ functions.php         framework scaffold (enqueues, customizer fix, scroll-shadow)
+  ├ inc/shortcodes.php    [current_year] [site_email] [site_option]
+  ├ lib/custom-functions.php
+  └ scss/                 design tokens + base + component stubs
+scripts/init.mjs        pre-flight validator (.env + templates/); writes nothing
+.claude/skills/         init-project · developer · qa · pm skills (+ references)
+static-website-reference/  empty — drop the project's static design source here (read-only)
+screenshot-reference/      empty — Developer/QA baseline screenshots of the static pages (writable)
 dev-tools/              empty — drop project one-off dev scripts here
+
+── generated by /init-project (not in the baseline; commit to the project repo) ──
+style.css  functions.php  inc/  lib/  scss/     rendered from templates/
+assets/css/main.css                             from `npm run build:css`
+context.md                                       fresh per-project work log
 ```
 
-- **Tokens** are the single source in `scss/abstracts/_tokens.scss`; don't add
-  inline CSS to `functions.php`.
+- **Tokens** are the single source in `scss/abstracts/_tokens.scss` (from
+  `templates/`); don't add inline CSS to `functions.php`.
 - **Components** (`_header`, `_nav`, `_footer`) ship as stubs; `_nav.scss` is
   developer-owned by convention. `_review-popup.scss` is optional and not
   compiled until you `@use` it in `main.scss`.

@@ -17,31 +17,63 @@ verified by QA and signed off by PM before client handoff. The bar is pixel-perf
 typography, spacing, colour, hover/focus states, responsive breakpoints, and copy must
 match the design source.
 
+## Golden Rules — always follow (non-negotiable)
+
+**`BUILD-PROCESS.md` §2 is canonical; these rules are mandatory defaults on every build.**
+Follow them by default and don't deviate without an explicit, recorded decision — if a task
+seems to require breaking one, stop and ask (see *Ask, don't guess*). Read §2 in full before
+building; the cheat-sheet below is a reminder, not a replacement.
+
+- **G1** — Repeating content = **CPT + ACF**, rendered by a **Loop Grid + Loop Template** (never hard-coded).
+- **G2** — **No HTML clones**; no structural HTML (`<div>/<ul>/<svg>/<address>`) inside `text-editor` widgets.
+- **G3** — Reusable panels = Elementor **section templates** (build once, embed via the Template widget).
+- **G4** — Navigation = Elementor Pro **Nav Menu widget** on a WP menu; no custom walker.
+- **G5** — Static marketing content = **native Elementor widgets** (Heading/Text/Button/Icon), editable in canvas.
+- **G6** — Forms = **Gravity Forms**, one per purpose, embedded by shortcode in a shared template.
+- **G7** — Icon fidelity via **inline SVG / CSS mask**, never icon webfonts.
+- **G8** — Editable chrome + dynamic items = native chrome widget (Nested-Tabs/Accordion) **+ a Loop Grid inside**.
+- **G9** — **Build in the Elementor UI / Theme Builder; register data (CPT/ACF/Options) in code.**
+- **G10** — **Pixel-perfect is verified, not asserted** — diff computed styles + screenshots before "done".
+- **G11** — **Respect the brief's brand/compliance rules** (legal name, banned phrases, disclaimers, etc.).
+
 ## Setup & build
 
-- One-time per project: copy `.env.example` → `.env`, fill it in, then `npm install`
-  and `npm run init` (stamps theme identity + these docs from `.env`).
+- The starter baseline ships **doctrine + tooling + `templates/`** only — the runnable theme
+  (`style.css`, `functions.php`, `inc/`, `lib/`, `scss/`) does **not** exist until init.
+- One-time per project: copy `.env.example` → `.env`, fill it in, `npm install`, then run the
+  **`/init-project`** skill — it renders `templates/` → the theme root (stamping identity + these
+  docs from `.env`), resets `context.md`, and builds CSS. `npm run init` (`scripts/init.mjs`) is
+  now just its **pre-flight validator** — it checks `.env` + `templates/` and writes nothing.
+- After init the rendered theme files exist in the root; **commit them to the project repo**.
 - CSS: authored in `scss/`, compiled to `assets/css/main.css` via `npm run build:css`
   (watch mode: `npm run watch:css`). **Rebuild and commit `main.css` after SCSS changes.**
 
 ## Where code lives
 
-- `functions.php` — enqueues (parent style, optional Google Fonts, compiled `main.css`
-  with `filemtime` busting), the shortcodes include, an Elementor customizer fatal-fix,
-  and a scroll-shadow helper (toggles `body.body-scrolled` past 8px). **No inline CSS.**
+- `templates/` — the **canonical source of truth** for every generated theme file. Edit here
+  to evolve the starter; `/init-project` renders these into the theme root per project. Never
+  hand-build the theme files directly in the root — change the template and re-render.
+- `functions.php` (from `templates/functions.php`) — enqueues (parent style, optional Google
+  Fonts, compiled `main.css` with `filemtime` busting), the shortcodes include, an Elementor
+  customizer fatal-fix, and a scroll-shadow helper (toggles `body.body-scrolled` past 8px).
+  **No inline CSS.**
 - `inc/shortcodes.php` — small guarded registry: `[current_year]`, `[site_email]`,
   `[site_option name="…"]`. Prefer Elementor Dynamic Tags; use these only where a tag
   can't reach raw markup.
 - `scss/` — `abstracts/` (`_tokens` = design tokens as CSS custom properties, `_mixins`),
   `base/`, `elementor/` (override layer), `components/` (header, nav, footer, buttons;
   `review-popup` is optional). Component partials ship as stubs — fill them in per project.
-- `scripts/init.mjs` — reads `.env` and stamps identity into `style.css`, `functions.php`,
-  `_tokens.scss`, and the `.claude/` docs.
+- `scripts/init.mjs` — **pre-flight validator** for `/init-project`: checks `.env` + `templates/`
+  and prints the resolved identity. It writes no files (the skill does the rendering + stamping).
 - Do **not** edit the parent theme (`hello-elementor`); override from here.
 - `static-website-reference/` — the approved static site (HTML/CSS/JS) that is the **design
   source of truth**. Read px, colours, weights, and copy from it; it is **read-only** —
   never create, edit, move, or delete files here. Its files are **uploaded manually** by the
   team, not generated or modified by Claude.
+- `screenshot-reference/` — **writable** baseline screenshots of the static reference pages,
+  captured by Developer/QA (desktop + ~390px) and used to pixel-compare against the built
+  Elementor page. Capture *from* `static-website-reference/`, save *here* — never write shots
+  into the read-only reference folder.
 
 ## Team flow — Developer → QA → PM
 

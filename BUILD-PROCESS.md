@@ -151,10 +151,14 @@ hard-coded CPT values in widgets (always Dynamic Tags).
 
 ## 4. Phase 1 — Environment & foundation
 
-> **Step zero (stamp).** `cp .env.example .env` → fill it → `npm run init`, then verify **no `{{TOKEN}}`
-> placeholder remains** in the theme or docs before building. The starter ships **recipes, not runnable
-> setup code** — the CPT/ACF/Global-Kit snippets here and in the developer references are patterns to
-> apply, not pre-wired code.
+> **Step zero (scaffold).** `cp .env.example .env` → fill it → run the **`/init-project`** skill. The
+> starter baseline carries **doctrine + tooling + `templates/`** only; `/init-project` renders
+> `templates/` → the theme root (substituting `.env`), stamps the docs, resets `context.md`, and builds
+> CSS. It runs `npm run init` first as a deterministic **pre-flight** (validates `.env` + `templates/`;
+> writes nothing). After it finishes, verify **no `{{TOKEN}}` placeholder remains** in the theme or docs
+> before building, and commit the rendered theme to the project repo. The starter still ships **recipes,
+> not runnable setup code** — the CPT/ACF/Global-Kit snippets here and in the developer references are
+> patterns to apply, not pre-wired code.
 
 1. **Provision** WP on Kinsta; install/activate Hello Elementor, Elementor + Pro, ACF, Gravity Forms, Yoast.
 2. **Permalinks** → `/%postname%/`.
