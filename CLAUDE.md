@@ -70,6 +70,10 @@ building; the cheat-sheet below is a reminder, not a replacement.
   source of truth**. Read px, colours, weights, and copy from it; it is **read-only** —
   never create, edit, move, or delete files here. Its files are **uploaded manually** by the
   team, not generated or modified by Claude.
+- `screenshot-reference/` — **writable** baseline screenshots of the static reference pages,
+  captured by Developer/QA (desktop + ~390px) and used to pixel-compare against the built
+  Elementor page. Capture *from* `static-website-reference/`, save *here* — never write shots
+  into the read-only reference folder.
 
 ## Team flow — Developer → QA → PM
 

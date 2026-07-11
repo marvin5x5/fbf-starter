@@ -25,10 +25,11 @@ The `references/` folder ships empty. Populate it for {{CLIENT_NAME}} with, for 
 - Pull ACF / Site Settings values via Elementor **Dynamic Tags**; use a **Loop Grid** for every CPT archive/grid. Don't hard-code CPT field values.
 - Elementor Pro is the sole builder; Gutenberg is disabled by the parent. Header/footer are Theme Builder templates.
 - Recommended defaults (confirm per project): icons as inline SVG (e.g. Lucide), images from the Media Library in an optimised format (e.g. WebP).
+- **Screenshot baseline:** capture a screenshot of the static reference page (served from the read-only `static-website-reference/`) and save it in **`screenshot-reference/`** — never write into `static-website-reference/`. Use it to compare against your built Elementor page during self-check (desktop **and** ~390px mobile) before handing to QA. Name each shot after the page (e.g. `home.png`, `home-390.png`).
 
 ## Flow
 
 1. Confirm prerequisites exist (kit tokens, ACF groups, CPTs, forms) — see the project's build-order doc.
 2. Open the page's section in the project's page brief; list sections + widgets before building.
 3. Build in Elementor (use the `elementor` skill for JSON), applying tokens/interactions from the project reference.
-4. Self-check against the brief (section order, copy verbatim, responsive, hover states) before handing to QA.
+4. Self-check against the brief (section order, copy verbatim, responsive, hover states) and against the page's `screenshot-reference/` baseline before handing to QA.

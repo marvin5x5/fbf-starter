@@ -67,7 +67,9 @@ never invent a client name, brand colour, font, or fonts URL to fill a gap.
    (date, files created, estimated token usage).
 
 5. **Ensure content dirs exist:** `static-website-reference/` (the team uploads the approved
-   design here — required before Phase 0) and `dev-tools/`. Keep their `.gitkeep`.
+   design here — required before Phase 0; **read-only**), `screenshot-reference/` (Developer/QA
+   store per-page baseline screenshots of the static reference here — **writable**), and
+   `dev-tools/`. Keep their `.gitkeep`.
 
 6. **Build CSS.** Run `npm run build:css` → `assets/css/main.css`. Report any Sass errors.
 
