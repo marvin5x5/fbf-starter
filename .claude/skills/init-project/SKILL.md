@@ -73,8 +73,21 @@ never invent a client name, brand colour, font, or fonts URL to fill a gap.
 
 6. **Build CSS.** Run `npm run build:css` → `assets/css/main.css`. Report any Sass errors.
 
-7. **Report** what was created + estimated token usage, and the next step: upload the design
-   reference into `static-website-reference/`, then start the **Developer** gate.
+7. **Import design images into the WordPress Media Library (conditional).** If
+   `static-website-reference/` already holds the design's images **and** WordPress is reachable
+   (provisioned + WP-CLI/credentials available):
+   - Import every image the build needs from `static-website-reference/` into the **Media Library**,
+     **converting to WebP where applicable** (confirm the format per project).
+   - Reference the **Media Library copies** in Elementor — never the `static-website-reference/`
+     files directly (that folder is read-only). Kill any local/`…vercel.app/assets/…` origins.
+   - Keep a short manifest (source filename → Media Library ID/URL) so Developer/QA can map them.
+
+   If the reference images or WordPress aren't ready yet, **skip and flag it as a deferred task**
+   — it must be completed in Phase 1/2 (foundation/ingest) before building image-bearing sections.
+
+8. **Report** what was created + estimated token usage, whether image import ran or was deferred,
+   and the next step: upload the design reference into `static-website-reference/` (if not already),
+   then start the **Developer** gate.
 
 ## Guardrails
 
