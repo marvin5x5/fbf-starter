@@ -51,5 +51,5 @@ Map each design element to its native Elementor widget rather than hand-rolling 
 
 1. Confirm prerequisites exist (kit tokens, ACF groups, CPTs, forms) — see the project's build-order doc.
 2. Open the page's section in the project's page brief; list sections + widgets before building.
-3. Build in Elementor (use the `elementor` skill for JSON), applying tokens/interactions from the project reference.
+3. Build in Elementor (use the `design-to-elementor-wp` skill for JSON), applying tokens/interactions from the project reference.
 4. Self-check against the brief (section order, copy verbatim, responsive, hover states) and against the page's `screenshot-reference/` baseline before handing to QA.
