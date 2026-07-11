@@ -28,6 +28,25 @@ The `references/` folder ships empty. Populate it for {{CLIENT_NAME}} with, for 
 - Recommended defaults (confirm per project): icons as inline SVG (e.g. Lucide), images from the Media Library in an optimised format (e.g. WebP).
 - **Screenshot baseline:** capture a screenshot of the static reference page (served from the read-only `static-website-reference/`) and save it in **`screenshot-reference/`** — never write into `static-website-reference/`. Use it to compare against your built Elementor page during self-check (desktop **and** ~390px mobile) before handing to QA. Name each shot after the page (e.g. `home.png`, `home-390.png`).
 
+## Elementor widget map (use where applicable/needed)
+
+Map each design element to its native Elementor widget rather than hand-rolling structural HTML (G2/G5). Use the closest fit below; reach for a custom shortcode only when no native widget applies.
+
+| Design element | Widget |
+|---|---|
+| Heading text | **Heading** |
+| Images | **Image** |
+| Content / body text | **Text Editor** (plain copy + inline links only) |
+| Buttons | **Button** |
+| Icon | **Icon** |
+| Grid / masonry gallery | **Gallery** |
+| Tabbed formats | **Tabs** |
+| Accordion formats (e.g. FAQ) | **Accordion** |
+| Carousel gallery | **Image Carousel** |
+| Stats | **Counter** |
+| List with icons | **Icon List** |
+| Shortcode output (e.g. text marquee, forms) | **Shortcode** |
+
 ## Flow
 
 1. Confirm prerequisites exist (kit tokens, ACF groups, CPTs, forms) — see the project's build-order doc.
