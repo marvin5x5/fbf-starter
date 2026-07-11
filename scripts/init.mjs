@@ -1,29 +1,38 @@
 #!/usr/bin/env node
 /**
- * init.mjs — stamp project identity from .env into the starter theme.
+ * init.mjs — pre-flight check for /init-project.
  *
- * Reads ./.env and writes:
- *   • style.css                 → Theme Name / Author / Template
- *   • functions.php             → handle prefix + Google Fonts URL
- *   • scss/abstracts/_tokens.scss → --brand-* + fonts (only if seeds provided)
- *   • .claude/skills/{developer,qa,pm}/SKILL.md → {{CLIENT_NAME}} placeholder
+ * This script no longer writes any theme files. In the template-driven model
+ * the `/init-project` Claude skill renders `templates/` → the theme root,
+ * substituting the values below. This script only VALIDATES that the inputs are
+ * present and sane, then prints the resolved identity so the skill (and the
+ * human) can confirm before rendering.
  *
- * Idempotent for identity fields. Note: {{CLIENT_NAME}} in the skills is a
- * one-shot token — once replaced it is gone, so changing CLIENT_NAME later and
- * re-running will not retro-update the skills (re-clone or edit by hand).
+ * Exit codes:  0 = ready to render   1 = blocked (missing/invalid input)
  *
  *   node scripts/init.mjs   (or: npm run init)
  */
-import { readFileSync, writeFileSync, existsSync, readdirSync } from 'node:fs';
+import { readFileSync, existsSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 
 const root = join(dirname(fileURLToPath(import.meta.url)), '..');
 const envPath = join(root, '.env');
+const templatesDir = join(root, 'templates');
 
+const problems = [];
+const warnings = [];
+
+// ── .env must exist ───────────────────────────────────────────────────────────
 if (!existsSync(envPath)) {
-  console.error('✗ No .env found. Copy .env.example to .env and fill it in first.');
+  console.error('✗ No .env found. Copy .env.example to .env and fill it in first:');
+  console.error('    cp .env.example .env');
   process.exit(1);
+}
+
+// ── templates/ must exist (the render source of truth) ──────────────────────────
+if (!existsSync(templatesDir)) {
+  problems.push('templates/ directory is missing — nothing for /init-project to render from.');
 }
 
 // ── Parse .env (tiny KEY=VALUE reader; strips quotes and # comments) ──────────
@@ -47,8 +56,8 @@ function parseEnv(text) {
 
 const env = parseEnv(readFileSync(envPath, 'utf8'));
 const {
-  CLIENT_NAME = 'Client Name',
-  THEME_AUTHOR = 'Five by Five',
+  CLIENT_NAME = '',
+  THEME_AUTHOR = '',
   PARENT_THEME = 'hello-elementor',
   THEME_HANDLE_PREFIX = 'theme',
   BRAND_PRIMARY = '',
@@ -58,93 +67,48 @@ const {
   GOOGLE_FONTS_URL = '',
 } = env;
 
+// ── Required identity ──────────────────────────────────────────────────────────
+if (!CLIENT_NAME || CLIENT_NAME === 'Client Name') {
+  problems.push('CLIENT_NAME is unset or still the "Client Name" placeholder.');
+}
+if (!THEME_AUTHOR) {
+  problems.push('THEME_AUTHOR is unset.');
+}
+if (!PARENT_THEME) {
+  problems.push('PARENT_THEME is unset (expected e.g. hello-elementor).');
+}
+
 // slug for enqueue-handle prefix — lowercase alnum + dashes
 const handlePrefix =
   (THEME_HANDLE_PREFIX || 'theme').toLowerCase()
     .replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '') || 'theme';
 
-const changed = [];
-function edit(relPath, fn, { optional = false } = {}) {
-  const p = join(root, relPath);
-  if (!existsSync(p)) {
-    if (!optional) console.warn(`  (skipped ${relPath} — not found)`);
-    return;
-  }
-  const before = readFileSync(p, 'utf8');
-  const after = fn(before);
-  if (after !== before) {
-    writeFileSync(p, after);
-    changed.push(relPath);
-  }
-}
+// ── Optional-but-worth-flagging ─────────────────────────────────────────────────
+if (!BRAND_PRIMARY) warnings.push('BRAND_PRIMARY blank — _tokens.scss keeps #000 /* TODO */.');
+if (!BRAND_ACCENT)  warnings.push('BRAND_ACCENT blank — _tokens.scss keeps #000 /* TODO */.');
+if (!FONT_SANS && !FONT_SERIF) warnings.push('No fonts set — _tokens.scss keeps system stacks.');
+if (!GOOGLE_FONTS_URL) warnings.push('GOOGLE_FONTS_URL blank — no Google Fonts enqueued.');
 
-// ── style.css header ──────────────────────────────────────────────────────────
-edit('style.css', (s) => s
-  .replace(/(Theme Name:\s*).*/, (_, k) => k + CLIENT_NAME)
-  .replace(/(Author:\s*).*/, (_, k) => k + THEME_AUTHOR)
-  .replace(/(Template:\s*).*/, (_, k) => k + PARENT_THEME)
-);
-
-// ── functions.php: handle prefix + fonts URL ────────────────────────────────────
-edit('functions.php', (s) => s
-  .replace(/(define\(\s*'THEME_HANDLE_PREFIX',\s*')[^']*('\s*\))/,
-    (_, a, b) => a + handlePrefix + b)
-  .replace(/(define\(\s*'THEME_GOOGLE_FONTS_URL',\s*')[^']*('\s*\))/,
-    (_, a, b) => a + GOOGLE_FONTS_URL + b)
-);
-
-// ── _tokens.scss: seed brand colours + fonts when provided ──────────────────────
-edit('scss/abstracts/_tokens.scss', (s) => {
-  let out = s;
-  if (BRAND_PRIMARY) {
-    out = out.replace(/(--brand-primary:\s*)#[0-9A-Fa-f]{3,8};(.*)/,
-      (_, a, b) => a + BRAND_PRIMARY + ';' + b);
-  }
-  if (BRAND_ACCENT) {
-    out = out.replace(/(--brand-accent:\s*)#[0-9A-Fa-f]{3,8};(.*)/,
-      (_, a, b) => a + BRAND_ACCENT + ';' + b);
-  }
-  if (FONT_SANS) {
-    out = out.replace(/(--font-sans:\s*).*?(;\s*\/\* FONT_SANS \*\/)/,
-      (_, a, b) => a + `"${FONT_SANS}", system-ui, -apple-system, sans-serif` + b);
-  }
-  if (FONT_SERIF) {
-    out = out.replace(/(--font-serif:\s*).*?(;\s*\/\* FONT_SERIF \*\/)/,
-      (_, a, b) => a + `"${FONT_SERIF}", Georgia, serif` + b);
-  }
-  return out;
-});
-
-// ── Docs: stamp {{CLIENT_NAME}} / {{AGENCY_NAME}} across CLAUDE.md + every skill .md ─
-function mdFiles(dir) {
-  const abs = join(root, dir);
-  if (!existsSync(abs)) return [];
-  const out = [];
-  for (const entry of readdirSync(abs, { withFileTypes: true })) {
-    const rel = join(dir, entry.name);
-    if (entry.isDirectory()) out.push(...mdFiles(rel));
-    else if (entry.name.endsWith('.md')) out.push(rel);
-  }
-  return out;
-}
-const stampDoc = (s) => s
-  .split('{{CLIENT_NAME}}').join(CLIENT_NAME)
-  .split('{{AGENCY_NAME}}').join(THEME_AUTHOR);
-edit('CLAUDE.md', stampDoc, { optional: true });
-for (const md of mdFiles('.claude/skills')) {
-  edit(md, stampDoc, { optional: true });
-}
-
-// ── Summary ─────────────────────────────────────────────────────────────────
-console.log('✓ Stamped project identity from .env');
-console.log(`  Theme Name .......... ${CLIENT_NAME}`);
-console.log(`  Author .............. ${THEME_AUTHOR}`);
-console.log(`  Parent theme ........ ${PARENT_THEME}`);
+// ── Report ──────────────────────────────────────────────────────────────────────
+console.log('── /init-project pre-flight ──────────────────────────────');
+console.log(`  Theme Name .......... ${CLIENT_NAME || '(missing)'}`);
+console.log(`  Author .............. ${THEME_AUTHOR || '(missing)'}`);
+console.log(`  Parent theme ........ ${PARENT_THEME || '(missing)'}`);
 console.log(`  Handle prefix ....... ${handlePrefix}-`);
 console.log(`  Brand primary ....... ${BRAND_PRIMARY || '(placeholder #000)'}`);
 console.log(`  Brand accent ........ ${BRAND_ACCENT || '(placeholder #000)'}`);
-console.log(`  Fonts URL ........... ${GOOGLE_FONTS_URL || '(none)'}`);
-console.log(changed.length
-  ? `\n  Files updated: ${changed.join(', ')}`
-  : '\n  No changes (already stamped).');
-console.log('\n→ Next: npm run build:css');
+console.log(`  Fonts (sans/serif) .. ${FONT_SANS || '(system)'} / ${FONT_SERIF || '(system)'}`);
+console.log(`  Google Fonts URL .... ${GOOGLE_FONTS_URL || '(none)'}`);
+
+if (warnings.length) {
+  console.log('\n  Notes:');
+  for (const w of warnings) console.log(`    • ${w}`);
+}
+
+if (problems.length) {
+  console.error('\n✗ Not ready to render:');
+  for (const p of problems) console.error(`    • ${p}`);
+  process.exit(1);
+}
+
+console.log('\n✓ Pre-flight passed — /init-project can render templates/ → theme root.');

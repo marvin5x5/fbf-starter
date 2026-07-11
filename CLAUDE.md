@@ -19,24 +19,33 @@ match the design source.
 
 ## Setup & build
 
-- One-time per project: copy `.env.example` → `.env`, fill it in, then `npm install`
-  and `npm run init` (stamps theme identity + these docs from `.env`).
+- The starter baseline ships **doctrine + tooling + `templates/`** only — the runnable theme
+  (`style.css`, `functions.php`, `inc/`, `lib/`, `scss/`) does **not** exist until init.
+- One-time per project: copy `.env.example` → `.env`, fill it in, `npm install`, then run the
+  **`/init-project`** skill — it renders `templates/` → the theme root (stamping identity + these
+  docs from `.env`), resets `context.md`, and builds CSS. `npm run init` (`scripts/init.mjs`) is
+  now just its **pre-flight validator** — it checks `.env` + `templates/` and writes nothing.
+- After init the rendered theme files exist in the root; **commit them to the project repo**.
 - CSS: authored in `scss/`, compiled to `assets/css/main.css` via `npm run build:css`
   (watch mode: `npm run watch:css`). **Rebuild and commit `main.css` after SCSS changes.**
 
 ## Where code lives
 
-- `functions.php` — enqueues (parent style, optional Google Fonts, compiled `main.css`
-  with `filemtime` busting), the shortcodes include, an Elementor customizer fatal-fix,
-  and a scroll-shadow helper (toggles `body.body-scrolled` past 8px). **No inline CSS.**
+- `templates/` — the **canonical source of truth** for every generated theme file. Edit here
+  to evolve the starter; `/init-project` renders these into the theme root per project. Never
+  hand-build the theme files directly in the root — change the template and re-render.
+- `functions.php` (from `templates/functions.php`) — enqueues (parent style, optional Google
+  Fonts, compiled `main.css` with `filemtime` busting), the shortcodes include, an Elementor
+  customizer fatal-fix, and a scroll-shadow helper (toggles `body.body-scrolled` past 8px).
+  **No inline CSS.**
 - `inc/shortcodes.php` — small guarded registry: `[current_year]`, `[site_email]`,
   `[site_option name="…"]`. Prefer Elementor Dynamic Tags; use these only where a tag
   can't reach raw markup.
 - `scss/` — `abstracts/` (`_tokens` = design tokens as CSS custom properties, `_mixins`),
   `base/`, `elementor/` (override layer), `components/` (header, nav, footer, buttons;
   `review-popup` is optional). Component partials ship as stubs — fill them in per project.
-- `scripts/init.mjs` — reads `.env` and stamps identity into `style.css`, `functions.php`,
-  `_tokens.scss`, and the `.claude/` docs.
+- `scripts/init.mjs` — **pre-flight validator** for `/init-project`: checks `.env` + `templates/`
+  and prints the resolved identity. It writes no files (the skill does the rendering + stamping).
 - Do **not** edit the parent theme (`hello-elementor`); override from here.
 - `static-website-reference/` — the approved static site (HTML/CSS/JS) that is the **design
   source of truth**. Read px, colours, weights, and copy from it; it is **read-only** —

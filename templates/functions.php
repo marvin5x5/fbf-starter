@@ -3,23 +3,23 @@
  * FBF Starter — Hello Elementor child theme
  *
  * Reusable, de-branded framework scaffold. Per-project identity (theme name,
- * fonts, handle prefix) is stamped from .env by `npm run init` — see README.
- * The parent theme (hello-elementor) handles core Hello Elementor / Elementor
- * Pro integration; this file adds enqueues, a shortcode registry, an Elementor
- * customizer fix, and a scroll-shadow helper.
+ * fonts, handle prefix) is rendered from templates/ + .env by the `/init-project`
+ * skill — see README. The parent theme (hello-elementor) handles core Hello
+ * Elementor / Elementor Pro integration; this file adds enqueues, a shortcode
+ * registry, an Elementor customizer fix, and a scroll-shadow helper.
  */
 
 if ( ! defined( 'ABSPATH' ) ) {
 	exit;
 }
 
-// ── Project config (stamped by scripts/init.mjs from .env) ───────────────────
+// ── Project config (rendered from .env by /init-project) ─────────────────────
 if ( ! defined( 'THEME_HANDLE_PREFIX' ) ) {
-	define( 'THEME_HANDLE_PREFIX', 'theme' );
+	define( 'THEME_HANDLE_PREFIX', '{{THEME_HANDLE_PREFIX}}' );
 }
 if ( ! defined( 'THEME_GOOGLE_FONTS_URL' ) ) {
-	// init writes the project's GOOGLE_FONTS_URL here; empty string disables it.
-	define( 'THEME_GOOGLE_FONTS_URL', '' );
+	// Project GOOGLE_FONTS_URL rendered here; empty string disables the enqueue.
+	define( 'THEME_GOOGLE_FONTS_URL', '{{GOOGLE_FONTS_URL}}' );
 }
 
 // ── Includes ─────────────────────────────────────────────────────────────────
